@@ -3,11 +3,11 @@ html, body {
     padding: 0;
     overflow: hidden;
     position: fixed;
-    width: 100dvw;
     height: 100dvh;
 }
   
 canvas {
     height: 100%;
     width: 100%;
+    touch-action: none;
 }

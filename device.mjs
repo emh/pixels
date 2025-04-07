@@ -9,6 +9,10 @@ export const device = {
             middle: false,
             right: false
         }
+    },
+    viewport: {
+        dx: 0,
+        dy: 0
     }
 };
 
@@ -25,7 +29,15 @@ const handlePointerEvent = (e) => {
     device.mouse.buttons.middle = (e.buttons & 4) !== 0;
 };
 
+const handleWheelEvent = (e) => {
+    e.preventDefault();
+
+    device.viewport.dx -= e.deltaX;
+    device.viewport.dy -= e.deltaY;
+};
+
 window.addEventListener('pointermove', handlePointerEvent);
 window.addEventListener('pointerdown', handlePointerEvent);
 window.addEventListener('pointerup', handlePointerEvent);
 window.addEventListener('contextmenu', (e) => e.preventDefault());
+window.addEventListener('wheel', handleWheelEvent, { passive: false });

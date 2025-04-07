@@ -44,34 +44,46 @@ const stats = (ctx, state) => {
 };
 
 const grid = (ctx, state) => {
+    const ox = device.viewport.dx % state.gridSize;
+    const oy = device.viewport.dy % state.gridSize;
+
     ctx.strokeStyle = 'lightgray';
     ctx.beginPath();
         
     for (let x = 0; x < device.width; x += state.gridSize) {
-        ctx.moveTo(x + 0.5, 0);
-        ctx.lineTo(x + 0.5, device.height);
+        ctx.moveTo(ox + x + 0.5, 0);
+        ctx.lineTo(ox + x + 0.5, device.height);
         ctx.stroke();    
     }
 
     for (let y = 0; y < device.height; y += state.gridSize) {
-        ctx.moveTo(0, y + 0.5);
-        ctx.lineTo(device.width, y + 0.5);
+        ctx.moveTo(0, oy + y + 0.5);
+        ctx.lineTo(device.width, oy + y + 0.5);
         ctx.stroke();    
     }
 };
 
+const getPixel = (pixels, x, y) => pixels.get(x)?.get(y) || false;
+
+const setPixel = (pixels, x, y) => {
+    const col = pixels.get(x) ?? new Map();
+    const newCol = new Map(col);
+    newCol.set(y, true);
+
+    const newPixels = new Map(pixels);
+    newPixels.set(x, newCol);
+
+    return newPixels;
+};
+
 const updatePixels = (state) => {
     if (device.mouse.buttons.left) {
-        const x = Math.floor(device.mouse.x / state.gridSize);
-        const y = Math.floor(device.mouse.y / state.gridSize);
-        const pixels = [...state.pixels];
-
-        pixels[x] ||= [];
-        pixels[x][y] = true;
+        const x = Math.floor((device.mouse.x - device.viewport.dx) / state.gridSize);
+        const y = Math.floor((device.mouse.y - device.viewport.dy) / state.gridSize);
 
         return {
             ...state,
-            pixels: [...pixels]
+            pixels: setPixel(state.pixels, x, y)
         };
     }
 
@@ -80,15 +92,21 @@ const updatePixels = (state) => {
 
 const renderPixels = (ctx, state) => {
     const size = state.gridSize;
+    const cx = Math.ceil(device.width / size) + 1;
+    const cy = Math.ceil(device.height / size) + 1;
+    const sx = Math.floor(-1 * device.viewport.dx / size);
+    const sy = Math.floor(-1 * device.viewport.dy / size);
+    const ex = sx + cx;
+    const ey = sy + cy;
 
     const drawPixel = (x, y) => {
         ctx.fillStyle = 'blue';
-        ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+        ctx.fillRect(x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2, size - 2);
     }
     
-    for (let x = 0; x < state.pixels.length; x++) {
-        for (let y = 0; y < state.pixels[x]?.length ?? 0; y++) {
-            if (state.pixels[x][y]) drawPixel(x, y);
+    for (let x = sx; x < ex; x++) {
+        for (let y = sy; y < ey; y++) {
+            if (getPixel(state.pixels, x, y)) drawPixel(x, y);
         }
     }
 };
@@ -96,8 +114,8 @@ const renderPixels = (ctx, state) => {
 const initialState = {
     x: 0,
     y: 0,
-    gridSize: 10,
-    pixels: []
+    gridSize: 20,
+    pixels: new Map()
 };
 
 const updaters = [updatePixels];
