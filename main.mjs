@@ -6,9 +6,18 @@ const run = (initialState, updaters, renderers) => {
     canvas.height = device.height;
 
     let state = initialState;
+    let lastTs = null;
 
     const tick = (ts) => {
         requestAnimationFrame(tick);
+
+        if (lastTs) {
+            const delta = ts - lastTs;
+            
+            state.fps = Math.round(1000 / delta);
+        }
+
+        lastTs = ts;
 
         if (canvas.width !== device.width || canvas.height !== device.height) {
             canvas.width = device.width;
@@ -31,7 +40,7 @@ const background = (ctx, state) => {
 const stats = (ctx, state) => {
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
-    ctx.fillText(`(${state.x}, ${state.y}, ${device.width}, ${device.height})`, 10, device.height - 10);
+    ctx.fillText(`${device.width}x${device.height} ${state.fps}fps`, 10, device.height - 10);
 };
 
 const grid = (ctx, state) => {
