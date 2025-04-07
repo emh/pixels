@@ -8,7 +8,6 @@ const run = (initialState, updaters, renderers) => {
     let state = initialState;
 
     const tick = (ts) => {
-        //console.log('tick', ts);
         requestAnimationFrame(tick);
 
         if (canvas.width !== device.width || canvas.height !== device.height) {
@@ -52,29 +51,48 @@ const grid = (ctx, state) => {
     }
 };
 
-// const init = () => {
-//     const handleResize = () => {
-//         const canvas = document.querySelector('canvas');
+const updatePixels = (state) => {
+    if (device.mouse.buttons.left) {
+        const x = Math.floor(device.mouse.x / state.gridSize);
+        const y = Math.floor(device.mouse.y / state.gridSize);
+        const pixels = [...state.pixels];
 
-//         canvas.width = window.innerWidth;
-//         canvas.height = window.innerHeight;        
-//     };
+        pixels[x] ||= [];
+        pixels[x][y] = true;
 
-//     document.addEventListener('resize', handleResize);
+        return {
+            ...state,
+            pixels: [...pixels]
+        };
+    }
 
-//     handleResize();
-// };
+    return state;
+};
 
-// init();
+const renderPixels = (ctx, state) => {
+    const size = state.gridSize;
+
+    const drawPixel = (x, y) => {
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
+    }
+    
+    for (let x = 0; x < state.pixels.length; x++) {
+        for (let y = 0; y < state.pixels[x]?.length ?? 0; y++) {
+            if (state.pixels[x][y]) drawPixel(x, y);
+        }
+    }
+};
 
 const initialState = {
     x: 0,
     y: 0,
-    gridSize: 10
+    gridSize: 10,
+    pixels: []
 };
 
-const updaters = [];
-const renderers = [background, grid, stats];
+const updaters = [updatePixels];
+const renderers = [background, grid, renderPixels, stats];
 
 run(initialState, updaters, renderers);
 
