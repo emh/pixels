@@ -100,8 +100,8 @@ const palette = (ctx, state) => {
 
     for (let i = 0; i < colors.length; i++) {
         ctx.fillStyle = colors[i];
-        // give these rects a solid black border ai!
         ctx.fillRect(i * size + offset, device.height - size, size, size);
+        ctx.strokeRect(i * size + offset, device.height - size, size, size);
     }
 
 };
