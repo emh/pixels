@@ -96,13 +96,14 @@ const palette = (ctx, state) => {
     const size = width / colors.length;
     const offset = (device.width - width) / 2;
 
-    console.log(width, offset);
+    ctx.strokeStyle = 'black';
 
     for (let i = 0; i < colors.length; i++) {
-        console.log(colors[i]);
         ctx.fillStyle = colors[i];
-        ctx.fillRect(i * size, device.height - size, size, size);
+        // give these rects a solid black border ai!
+        ctx.fillRect(i * size + offset, device.height - size, size, size);
     }
+
 };
 
 const initialState = {
