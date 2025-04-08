@@ -6,10 +6,10 @@ const background = (ctx) => {
 };
 
 const stats = (ctx, state) => {
-    // let's move the text to the top right ai!
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
-    ctx.fillText(`${device.width}x${device.height} ${state.fps}fps`, 10, device.height - 10);
+    ctx.textAlign = 'right';
+    ctx.fillText(`${device.width}x${device.height} ${state.fps}fps`, device.width - 10, 20);
 };
 
 const grid = (ctx, state) => {
