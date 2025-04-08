@@ -6,6 +6,7 @@ const background = (ctx) => {
 };
 
 const stats = (ctx, state) => {
+    // let's move the text to the top right ai!
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
     ctx.fillText(`${device.width}x${device.height} ${state.fps}fps`, 10, device.height - 10);
@@ -79,6 +80,31 @@ const renderPixels = (ctx, state) => {
     }
 };
 
+const palette = (ctx, state) => {
+    const colors = [
+        'red',
+        'orange',
+        'yellow',
+        'green',
+        'blue',
+        'purple',
+        'black',
+        'white'
+    ];
+
+    const width = Math.min(colors.length * 50, device.width);
+    const size = width / colors.length;
+    const offset = (device.width - width) / 2;
+
+    console.log(width, offset);
+
+    for (let i = 0; i < colors.length; i++) {
+        console.log(colors[i]);
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(i * size, device.height - size, size, size);
+    }
+};
+
 const initialState = {
     x: 0,
     y: 0,
@@ -87,7 +113,6 @@ const initialState = {
 };
 
 const updaters = [updatePixels];
-const renderers = [background, grid, renderPixels, stats];
+const renderers = [background, grid, renderPixels, palette, stats];
 
 run(initialState, updaters, renderers);
-
