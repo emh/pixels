@@ -63,12 +63,12 @@ const grid = (ctx, state) => {
     }
 };
 
-const getPixel = (pixels, x, y) => pixels.get(x)?.get(y) || false;
+const getPixel = (pixels, x, y) => pixels.get(x)?.get(y);
 
-const setPixel = (pixels, x, y) => {
+const setPixel = (pixels, x, y, color) => {
     const col = pixels.get(x) ?? new Map();
     const newCol = new Map(col);
-    newCol.set(y, true);
+    newCol.set(y, color);
 
     const newPixels = new Map(pixels);
     newPixels.set(x, newCol);
@@ -83,7 +83,7 @@ const updatePixels = (state) => {
 
         return {
             ...state,
-            pixels: setPixel(state.pixels, x, y)
+            pixels: setPixel(state.pixels, x, y, state.currentColor)
         };
     }
 
@@ -98,20 +98,35 @@ const renderPixels = (ctx, state) => {
     const sy = Math.floor(-1 * device.viewport.dy / size);
     const ex = sx + cx;
     const ey = sy + cy;
-
-    const drawPixel = (x, y) => {
-        ctx.fillStyle = 'blue';
-        ctx.fillRect(x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2, size - 2);
-    }
-    
+        
     for (let x = sx; x < ex; x++) {
         for (let y = sy; y < ey; y++) {
-            if (getPixel(state.pixels, x, y)) drawPixel(x, y);
+            const color = getPixel(state.pixels, x, y);
+            
+            if (color) {
+                ctx.fillStyle = color;
+                ctx.fillRect(x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2, size - 2);
+            }
         }
     }
 };
 
-const palette = (ctx) => {
+const setColor = (state) => {
+    if (device.mouse.buttons.left && insidePalette()) {
+        const rect = paletteRect();
+        const size = (rect.right - rect.left) / colors.length;
+        const index = Math.floor((device.mouse.x - rect.left) / size);
+
+        return {
+            ...state,
+            currentColor: colors[index]
+        };
+    }
+
+    return state;
+};
+
+const palette = (ctx, state) => {
     const rect = paletteRect();
     const size = (rect.right - rect.left) / colors.length;
 
@@ -121,6 +136,10 @@ const palette = (ctx) => {
         ctx.fillStyle = colors[i];
         ctx.fillRect(rect.left + i * size, rect.top, size, size);
         ctx.strokeRect(rect.left + i * size, rect.top, size, size);
+
+        if (colors[i] === state.currentColor) {
+            ctx.strokeRect(rect.left + i * size + 5, rect.top + 5, size - 10, size - 10);
+        }
     }
 };
 
@@ -128,10 +147,11 @@ const initialState = {
     x: 0,
     y: 0,
     gridSize: 20,
-    pixels: new Map()
+    pixels: new Map(),
+    currentColor: colors[0]
 };
 
-const updaters = [updatePixels];
+const updaters = [updatePixels, setColor];
 const renderers = [background, grid, renderPixels, palette, stats];
 
 run(initialState, updaters, renderers);
