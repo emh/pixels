@@ -1,6 +1,37 @@
 import { device } from './device.mjs';
 import { run } from './engine.mjs';
 
+const colors = [
+    'red',
+    'orange',
+    'yellow',
+    'green',
+    'blue',
+    'purple',
+    'black',
+    'white'
+];
+
+const paletteRect = () => {
+    const width = Math.min(colors.length * 50, device.width - 20);
+    const size = width / colors.length;
+    const offset = (device.width - width) / 2;
+
+    return {
+        top: device.height - size - 10,
+        left: offset,
+        right: offset + width,
+        bottom: device.height - 10
+    };
+};
+
+const insidePalette = () => {
+    const { x, y } = device.mouse;
+    const rect = paletteRect();
+
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+};
+
 const background = (ctx) => {
     ctx.clearRect(0, 0, device.width, device.height);
 };
@@ -46,7 +77,7 @@ const setPixel = (pixels, x, y) => {
 };
 
 const updatePixels = (state) => {
-    if (device.mouse.buttons.left) {
+    if (device.mouse.buttons.left && !insidePalette()) {
         const x = Math.floor((device.mouse.x - device.viewport.dx) / state.gridSize);
         const y = Math.floor((device.mouse.y - device.viewport.dy) / state.gridSize);
 
@@ -80,30 +111,17 @@ const renderPixels = (ctx, state) => {
     }
 };
 
-const palette = (ctx, state) => {
-    const colors = [
-        'red',
-        'orange',
-        'yellow',
-        'green',
-        'blue',
-        'purple',
-        'black',
-        'white'
-    ];
-
-    const width = Math.min(colors.length * 50, device.width - 20);
-    const size = width / colors.length;
-    const offset = (device.width - width) / 2;
+const palette = (ctx) => {
+    const rect = paletteRect();
+    const size = (rect.right - rect.left) / colors.length;
 
     ctx.strokeStyle = 'black';
 
     for (let i = 0; i < colors.length; i++) {
         ctx.fillStyle = colors[i];
-        ctx.fillRect(i * size + offset, device.height - size - 10, size, size);
-        ctx.strokeRect(i * size + offset, device.height - size - 10, size, size);
+        ctx.fillRect(rect.left + i * size, rect.top, size, size);
+        ctx.strokeRect(rect.left + i * size, rect.top, size, size);
     }
-
 };
 
 const initialState = {
