@@ -92,7 +92,7 @@ const palette = (ctx, state) => {
         'white'
     ];
 
-    const width = Math.min(colors.length * 50, device.width);
+    const width = Math.min(colors.length * 50, device.width - 20);
     const size = width / colors.length;
     const offset = (device.width - width) / 2;
 
@@ -100,8 +100,8 @@ const palette = (ctx, state) => {
 
     for (let i = 0; i < colors.length; i++) {
         ctx.fillStyle = colors[i];
-        ctx.fillRect(i * size + offset, device.height - size, size, size);
-        ctx.strokeRect(i * size + offset, device.height - size, size, size);
+        ctx.fillRect(i * size + offset, device.height - size - 10, size, size);
+        ctx.strokeRect(i * size + offset, device.height - size - 10, size, size);
     }
 
 };
