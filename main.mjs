@@ -1,16 +1,6 @@
 import { device } from './device.mjs';
 import { run } from './engine.mjs';
-
-const colors = [
-    'red',
-    'orange',
-    'yellow',
-    'green',
-    'blue',
-    'purple',
-    'black',
-    'white'
-];
+import { initialState, colors, tools, icons } from './constants.mjs';
 
 const paletteRect = () => {
     const width = Math.min(colors.length * 50, device.width - 20);
@@ -18,7 +8,7 @@ const paletteRect = () => {
     const offset = (device.width - width) / 2;
 
     return {
-        top: device.height - size - 10,
+        top: device.height - (size * 2) - 10,
         left: offset,
         right: offset + width,
         bottom: device.height - 10
@@ -126,6 +116,15 @@ const setColor = (state) => {
     return state;
 };
 
+const drawIcon = (ctx, icon, pixelSize) => {
+    for (let y = 0; y < icon.length; y++) {
+        for (let x = 0; x < icon[y].length; x++) {
+            ctx.fillStyle = icon[y][x] ? 'black' : 'white';
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        }
+    }
+};
+
 const palette = (ctx, state) => {
     const rect = paletteRect();
     const size = (rect.right - rect.left) / colors.length;
@@ -133,22 +132,27 @@ const palette = (ctx, state) => {
     ctx.strokeStyle = 'black';
 
     for (let i = 0; i < colors.length; i++) {
+        ctx.save();
         ctx.fillStyle = colors[i];
-        ctx.fillRect(rect.left + i * size, rect.top, size, size);
-        ctx.strokeRect(rect.left + i * size, rect.top, size, size);
+        ctx.translate(rect.left + i * size, rect.top + size);
+        ctx.fillRect(0, 0, size, size);
+        ctx.strokeRect(0, 0, size, size);
+        if (colors[i] === state.currentColor) ctx.strokeRect(5, 5, size - 10, size - 10);
+        ctx.restore();
 
-        if (colors[i] === state.currentColor) {
-            ctx.strokeRect(rect.left + i * size + 5, rect.top + 5, size - 10, size - 10);
-        }
+        const tool = tools[i][state.currentTools[i]];
+        const icon = icons[tool];
+        const pixelSize = (size / (icon.length + 2));
+
+        ctx.save();
+        ctx.fillStyle = 'white';
+        ctx.translate(rect.left + i * size, rect.top);
+        ctx.fillRect(0, 0, size, size);
+        ctx.strokeRect(0, 0, size, size);
+        ctx.translate(pixelSize, pixelSize);
+        drawIcon(ctx, icon, pixelSize);
+        ctx.restore();
     }
-};
-
-const initialState = {
-    x: 0,
-    y: 0,
-    gridSize: 20,
-    pixels: new Map(),
-    currentColor: colors[0]
 };
 
 const updaters = [updatePixels, setColor];
