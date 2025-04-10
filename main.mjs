@@ -22,6 +22,17 @@ const insidePalette = () => {
     return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
 };
 
+const paletteCoord = () => {
+    const { x, y } = device.mouse;
+    const rect = paletteRect();
+    const size = (rect.right - rect.left) / 8;
+
+    return {
+        x: Math.floor((x - rect.left) / size),
+        y: Math.floor((y - rect.top) / size)
+    };
+};
+
 const background = (ctx) => {
     ctx.clearRect(0, 0, device.width, device.height);
 };
@@ -102,15 +113,34 @@ const renderPixels = (ctx, state) => {
 };
 
 const setColor = (state) => {
-    const rect = paletteRect();
-    const size = (rect.right - rect.left) / colors.length;
-    const index = Math.floor((device.mouse.x - rect.left) / size);
-    const currentColor = !state.wasLeftButtonPressed && device.mouse.buttons.left && insidePalette() ? colors[index] : state.currentColor;
+    const coord = paletteCoord();
+    const currentColor = state.click && coord.y === 1 && insidePalette() ? colors[coord.x] : state.currentColor;
 
     return {
         ...state,
-        currentColor,
-        wasLeftButtonPressed: device.mouse.buttons.left
+        currentColor
+    };
+};
+
+const zoomIn = (state) => {
+    const { x, y } = device.mouse;
+    const coord = paletteCoord(x, y);
+    const zoomLevel = state.click && coord.x === 2 && coord.y === 0 ? Math.min(5, state.zoomLevel + 1) : state.zoomLevel;
+
+    return {
+        ...state,
+        zoomLevel
+    };
+};
+
+const zoomOut = (state) => {
+    const { x, y } = device.mouse;
+    const coord = paletteCoord(x, y);
+    const zoomLevel = state.click && coord.x === 3 && coord.y === 0 ? Math.max(0, state.zoomLevel - 1) : state.zoomLevel;
+
+    return {
+        ...state,
+        zoomLevel
     };
 };
 
@@ -153,7 +183,17 @@ const palette = (ctx, state) => {
     }
 };
 
-const updaters = [updatePixels, setColor];
+const detectClick = (state) => {
+    const click = !state.wasLeftButtonPressed && device.mouse.buttons.left;
+
+    return {
+        ...state,
+        click,
+        wasLeftButtonPressed: device.mouse.buttons.left
+    };
+};
+
+const updaters = [detectClick, updatePixels, setColor, zoomIn, zoomOut];
 const renderers = [background, grid, renderPixels, palette, stats];
 
 run(initialState, updaters, renderers);
