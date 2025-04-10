@@ -1,5 +1,3 @@
-export const initPixels = () => new Map();
-
 const setQuadPixel = (node, localX, localY, depth, c) => {
     if (depth === 0) return c;
   

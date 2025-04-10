@@ -1,6 +1,7 @@
 import { device } from './device.mjs';
 import { run } from './engine.mjs';
 import { initialState, colors, tools, icons } from './constants.mjs';
+import { setPixel, getPixel } from './pixel.mjs';
 
 const paletteRect = () => {
     const width = Math.min(colors.length * 50, device.width - 20);
@@ -64,19 +65,6 @@ const grid = (ctx, state) => {
     }
 };
 
-const getPixel = (pixels, x, y) => pixels.get(x)?.get(y);
-
-const setPixel = (pixels, x, y, color) => {
-    const col = pixels.get(x) ?? new Map();
-    const newCol = new Map(col);
-    newCol.set(y, color);
-
-    const newPixels = new Map(pixels);
-    newPixels.set(x, newCol);
-
-    return newPixels;
-};
-
 const updatePixels = (state) => {
     if (device.mouse.buttons.left && !insidePalette()) {
         const x = Math.floor((device.mouse.x - device.viewport.dx) / state.gridSize);
@@ -84,11 +72,49 @@ const updatePixels = (state) => {
 
         return {
             ...state,
-            pixels: setPixel(state.pixels, x, y, state.currentColor)
+            pixels: setPixel(state.pixels, x, y, state.zoomLevel, state.currentColor)
         };
     }
 
     return state;
+};
+
+const renderQuadPixel = (ctx, pixel, x, y, size) => {
+    let color = pixel.nw;
+
+    if (typeof color === 'object') {
+        renderQuadPixel(ctx, color, x, y, size / 2);
+    } else if (color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, size / 2, size / 2);
+    }
+
+    color = pixel.ne;
+
+    if (typeof color === 'object') {
+        renderQuadPixel(ctx, color, x + size / 2, y, size / 2);
+    } else if (color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + size / 2, y, size / 2, size / 2);
+    }
+
+    color = pixel.sw;
+
+    if (typeof color === 'object') {
+        renderQuadPixel(ctx, color, x, y + size / 2, size / 2);
+    } else if (color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y + size / 2, size / 2, size / 2);
+    }
+
+    color = pixel.se;
+
+    if (typeof color === 'object') {
+        renderQuadPixel(ctx, color, x + size / 2, y + size / 2, size / 2);
+    } else if (color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x + size / 2, y + size / 2, size / 2, size / 2);
+    }
 };
 
 const renderPixels = (ctx, state) => {
@@ -102,9 +128,11 @@ const renderPixels = (ctx, state) => {
         
     for (let x = sx; x < ex; x++) {
         for (let y = sy; y < ey; y++) {
-            const color = getPixel(state.pixels, x, y);
+            const color = getPixel(state.pixels, x, y, state.zoomLevel);
             
-            if (color) {
+            if (typeof color === 'object') {
+                renderQuadPixel(ctx, color, x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2);
+            } else if (color) {
                 ctx.fillStyle = color;
                 ctx.fillRect(x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2, size - 2);
             }
