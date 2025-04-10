@@ -155,5 +155,6 @@ export const initialState = {
     gridSize: 20,
     pixels: new Map(),
     currentColor: colors[0],
-    currentTools: [0, 0, 0, 0, 0, 0, 0, 0]
+    currentTools: [0, 0, 0, 0, 0, 0, 0, 0],
+    wasLeftButtonPressed: false
 };

@@ -102,18 +102,16 @@ const renderPixels = (ctx, state) => {
 };
 
 const setColor = (state) => {
-    if (device.mouse.buttons.left && insidePalette()) {
-        const rect = paletteRect();
-        const size = (rect.right - rect.left) / colors.length;
-        const index = Math.floor((device.mouse.x - rect.left) / size);
+    const rect = paletteRect();
+    const size = (rect.right - rect.left) / colors.length;
+    const index = Math.floor((device.mouse.x - rect.left) / size);
+    const currentColor = !state.wasLeftButtonPressed && device.mouse.buttons.left && insidePalette() ? colors[index] : state.currentColor;
 
-        return {
-            ...state,
-            currentColor: colors[index]
-        };
-    }
-
-    return state;
+    return {
+        ...state,
+        currentColor,
+        wasLeftButtonPressed: device.mouse.buttons.left
+    };
 };
 
 const drawIcon = (ctx, icon, pixelSize) => {
