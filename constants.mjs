@@ -150,8 +150,6 @@ export const icons = {
 };
 
 export const initialState = {
-    x: 0,
-    y: 0,
     gridSize: 16,
     pixels: new Map(),
     currentColor: colors[0],

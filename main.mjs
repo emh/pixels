@@ -42,7 +42,7 @@ const stats = (ctx, state) => {
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
     ctx.textAlign = 'right';
-    ctx.fillText(`${device.width}x${device.height} ${state.fps}fps`, device.width - 10, 20);
+    ctx.fillText(`${Math.floor(device.viewport.dx)}x${Math.floor(device.viewport.dy)} ${state.fps}fps`, device.width - 10, 20);
 };
 
 const grid = (ctx, state) => {
@@ -153,7 +153,17 @@ const setColor = (state) => {
 const zoomIn = (state) => {
     const { x, y } = device.mouse;
     const coord = paletteCoord(x, y);
-    const zoomLevel = state.click && coord.x === 2 && coord.y === 0 ? Math.min(5, state.zoomLevel + 1) : state.zoomLevel;
+    let { zoomLevel } = state;
+
+    if (state.click && coord.x === 2 && coord.y === 0 && zoomLevel < 5) {
+        const centerX = device.width / 2 - device.viewport.dx;
+        const centerY = device.height / 2 - device.viewport.dy;
+
+        zoomLevel++;
+        
+        device.viewport.dx = device.width / 2 - centerX * 2;
+        device.viewport.dy = device.height / 2 - centerY * 2;
+    }
 
     return {
         ...state,
@@ -164,7 +174,17 @@ const zoomIn = (state) => {
 const zoomOut = (state) => {
     const { x, y } = device.mouse;
     const coord = paletteCoord(x, y);
-    const zoomLevel = state.click && coord.x === 3 && coord.y === 0 ? Math.max(0, state.zoomLevel - 1) : state.zoomLevel;
+    let { zoomLevel } = state;
+
+    if (state.click && coord.x === 3 && coord.y === 0 && zoomLevel > 0) {
+        const centerX = device.width / 2 - device.viewport.dx;
+        const centerY = device.height / 2 - device.viewport.dy;
+
+        zoomLevel--;
+        
+        device.viewport.dx = device.width / 2 - centerX / 2;
+        device.viewport.dy = device.height / 2 - centerY / 2;
+    }
 
     return {
         ...state,
