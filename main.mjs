@@ -196,6 +196,24 @@ const zoomOut = (state) => {
     };
 };
 
+const clear = (state) => {
+    const { x, y } = device.mouse;
+    const coord = paletteCoord(x, y);
+
+    if (state.click && coord.x === 6 && coord.y === 0) {
+        device.viewport.dx = 0;
+        device.viewport.dy = 0;
+
+        return {
+            ...state,
+            pixels: new Map(),
+            zoomLevel: 0
+        };
+    }
+
+    return state;
+};
+
 const drawIcon = (ctx, icon, pixelSize, color) => {
     for (let y = 0; y < icon.length; y++) {
         for (let x = 0; x < icon[y].length; x++) {
@@ -224,6 +242,7 @@ const palette = (ctx, state) => {
         ctx.translate(rect.left + i * size, rect.top + size);
         ctx.fillRect(0, 0, size, size);
         ctx.strokeRect(0, 0, size, size);
+        ctx.strokeStyle = i >= 4 && i <= 6 ? 'white' : 'black';
         if (colors[i] === state.currentColor) ctx.strokeRect(5, 5, size - 10, size - 10);
         ctx.restore();
 
@@ -253,7 +272,7 @@ const detectClick = (state) => {
     };
 };
 
-const updaters = [detectClick, updatePixels, setColor, zoomIn, zoomOut];
+const updaters = [detectClick, updatePixels, setColor, zoomIn, zoomOut, clear];
 const renderers = [background, grid, renderPixels, palette, stats];
 
 run(initialState, updaters, renderers);
