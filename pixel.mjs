@@ -1,34 +1,39 @@
 const setQuadPixel = (node, localX, localY, depth, c) => {
     if (depth === 0) return c;
-  
+    
     const factor = 2 ** (depth - 1);
     const qx = Math.floor(localX / factor);
     const qy = Math.floor(localY / factor);
-
     let quadrant;
-
+    
     if (qx === 0 && qy === 0) quadrant = 'nw';
     else if (qx === 1 && qy === 0) quadrant = 'ne';
     else if (qx === 0 && qy === 1) quadrant = 'sw';
     else if (qx === 1 && qy === 1) quadrant = 'se';
-  
+    
+    let newNode;
+
     if (node === null) {
-        node = {};
+        newNode = {};
     } else if (typeof node !== 'object') {
-        node = { ne: node, nw: node, sw: node, se: node };
+        newNode = { ne: node, nw: node, sw: node, se: node };
+    } else {
+        newNode = { ...node };
     }
-  
-    node[quadrant] = setQuadPixel(node[quadrant], localX % factor, localY % factor, depth - 1, c);
+    
+    const updatedQuadrant = setQuadPixel(newNode[quadrant], localX % factor, localY % factor, depth - 1, c);
 
-    if (node.ne === node.nw && node.ne === node.se && node.nw === node.sw) {
-        return node.ne;
+    newNode[quadrant] = updatedQuadrant;
+    
+    if (newNode.ne === newNode.nw && newNode.ne === newNode.se && newNode.nw === newNode.sw) {
+        return newNode.ne;
     }
-
-    if (node.ne == null && node.nw == null && node.sw == null && node.se == null) {
+    
+    if (newNode.ne == null && newNode.nw == null && newNode.sw == null && newNode.se == null) {
         return null;
     }
-
-    return node;
+    
+    return newNode;
 }
   
 export const setPixel = (pixels, x, y, z, c) => {

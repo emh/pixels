@@ -1,20 +1,20 @@
-import { initPixels, setPixel, getPixel } from './pixel.mjs';
+import { setPixel, getPixel } from './pixel.mjs';
 import { test, run } from './test_runner.mjs';
 import assert from 'node:assert/strict';
 
 test('starts empty', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     assert.equal(pixels.size, 0, 'expect no pixels to start');
 });
 
 test('returns undefined for empty pixel', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     
     assert.equal(getPixel(pixels, 0, 0, 0), undefined);
 });
 
 test('get/set work', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     
     pixels = setPixel(pixels, 0, 0, 0, 'black');
 
@@ -22,7 +22,7 @@ test('get/set work', () => {
 });
 
 test('setting zoomed in pixel creates a quad', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     pixels = setPixel(pixels, 0, 0, 0, 'black');
     pixels = setPixel(pixels, 0, 0, 1, 'red');
 
@@ -32,7 +32,7 @@ test('setting zoomed in pixel creates a quad', () => {
 });
 
 test('setting multi-zoomed in pixel creates a quad', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     pixels = setPixel(pixels, 4, 3, 0, 'black');
     pixels = setPixel(pixels, 16, 13, 2, 'red');
 
@@ -42,7 +42,7 @@ test('setting multi-zoomed in pixel creates a quad', () => {
 });
 
 test('setting all 4 quadrants collapses that level', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     pixels = setPixel(pixels, 4, 3, 0, 'red');
     pixels = setPixel(pixels, 16, 13, 2, 'black');
     pixels = setPixel(pixels, 16, 12, 2, 'black');
@@ -55,7 +55,7 @@ test('setting all 4 quadrants collapses that level', () => {
 });
 
 test('setting pixels at three zoom levels', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     pixels = setPixel(pixels, 4, 3, 0, 'yellow');
     pixels = setPixel(pixels, 16, 13, 2, 'black');
     pixels = setPixel(pixels, 9, 7, 1, 'red');
@@ -66,7 +66,7 @@ test('setting pixels at three zoom levels', () => {
 });
 
 test('get zoomed in pixel', () => {
-    let pixels = initPixels();
+    let pixels = new Map();
     pixels = setPixel(pixels, 4, 3, 0, 'yellow');
     pixels = setPixel(pixels, 16, 13, 2, 'black');
     pixels = setPixel(pixels, 9, 7, 1, 'red');
