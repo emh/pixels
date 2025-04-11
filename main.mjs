@@ -39,10 +39,14 @@ const background = (ctx) => {
 };
 
 const stats = (ctx, state) => {
+    const size = state.gridSize;
+    const sx = Math.floor(-1 * device.viewport.dx / size);
+    const sy = Math.floor(-1 * device.viewport.dy / size);
+
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
     ctx.textAlign = 'right';
-    ctx.fillText(`${Math.floor(device.viewport.dx)}x${Math.floor(device.viewport.dy)} ${state.fps}fps`, device.width - 10, 20);
+    ctx.fillText(`${2**state.zoomLevel}x ${sx}, ${sy} ${state.fps}fps`, device.width - 10, 20);
 };
 
 const grid = (ctx, state) => {
@@ -192,13 +196,20 @@ const zoomOut = (state) => {
     };
 };
 
-const drawIcon = (ctx, icon, pixelSize) => {
+const drawIcon = (ctx, icon, pixelSize, color) => {
     for (let y = 0; y < icon.length; y++) {
         for (let x = 0; x < icon[y].length; x++) {
-            ctx.fillStyle = icon[y][x] ? 'black' : 'white';
+            ctx.fillStyle = icon[y][x] ? color : 'white';
             ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
         }
     }
+};
+
+const isToolDisabled = (state, i) => {
+    if (i === 2) return state.zoomLevel === 5;
+    if (i === 3) return state.zoomLevel === 0;
+
+    return false;
 };
 
 const palette = (ctx, state) => {
@@ -219,6 +230,7 @@ const palette = (ctx, state) => {
         const tool = tools[i][state.currentTools[i]];
         const icon = icons[tool];
         const pixelSize = (size / (icon.length + 2));
+        const disabled = isToolDisabled(state, i);
 
         ctx.save();
         ctx.fillStyle = 'white';
@@ -226,7 +238,7 @@ const palette = (ctx, state) => {
         ctx.fillRect(0, 0, size, size);
         ctx.strokeRect(0, 0, size, size);
         ctx.translate(pixelSize, pixelSize);
-        drawIcon(ctx, icon, pixelSize);
+        drawIcon(ctx, icon, pixelSize, disabled ? 'lightgray' : 'black');
         ctx.restore();
     }
 };
