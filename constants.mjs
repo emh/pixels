@@ -20,6 +20,18 @@ export const tools = [
     ['share']
 ];
 
+export const TOOLS = 0;
+export const COLORS = 1;
+
+export const UNDO = 0;
+export const REDO = 1;
+export const ZOOMIN = 2;
+export const ZOOMOUT = 3;
+export const TOOL = 4;
+export const MODE = 5;
+export const CLEAR = 6;
+export const SHARE = 7;
+
 export const icons = {
     redo: [
         [0, 0, 1, 1, 1, 0, 1],
@@ -155,5 +167,9 @@ export const initialState = {
     currentColor: colors[0],
     currentTools: [0, 0, 0, 0, 0, 0, 0, 0],
     wasLeftButtonPressed: false,
-    zoomLevel: 0
+    click: false,
+    isDrawing: false,
+    zoomLevel: 0,
+    undoStack: [],
+    redoStack: []
 };

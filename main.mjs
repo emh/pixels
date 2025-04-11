@@ -1,6 +1,6 @@
 import { device } from './device.mjs';
 import { run } from './engine.mjs';
-import { initialState, colors, tools, icons } from './constants.mjs';
+import { initialState, colors, tools, icons, TOOLS, CLEAR, ZOOMIN, ZOOMOUT, COLORS, UNDO, REDO } from './constants.mjs';
 import { setPixel, getPixel } from './pixel.mjs';
 
 const paletteRect = () => {
@@ -71,12 +71,19 @@ const grid = (ctx, state) => {
 
 const updatePixels = (state) => {
     if (device.mouse.buttons.left && !insidePalette()) {
+        const undoStack = [...state.undoStack];
+
+        if (state.click) {
+            undoStack.push(state.pixels);
+        }
+
         const x = Math.floor((device.mouse.x - device.viewport.dx) / state.gridSize);
         const y = Math.floor((device.mouse.y - device.viewport.dy) / state.gridSize);
 
         return {
             ...state,
-            pixels: setPixel(state.pixels, x, y, state.zoomLevel, state.currentColor)
+            pixels: setPixel(state.pixels, x, y, state.zoomLevel, state.currentColor),
+            undoStack
         };
     }
 
@@ -146,7 +153,7 @@ const renderPixels = (ctx, state) => {
 
 const setColor = (state) => {
     const coord = paletteCoord();
-    const currentColor = state.click && coord.y === 1 && insidePalette() ? colors[coord.x] : state.currentColor;
+    const currentColor = state.click && coord.y === COLORS && insidePalette() ? colors[coord.x] : state.currentColor;
 
     return {
         ...state,
@@ -155,11 +162,9 @@ const setColor = (state) => {
 };
 
 const zoomIn = (state) => {
-    const { x, y } = device.mouse;
-    const coord = paletteCoord(x, y);
     let { zoomLevel } = state;
 
-    if (state.click && coord.x === 2 && coord.y === 0 && zoomLevel < 5) {
+    if (zoomLevel < 5) {
         const centerX = device.width / 2 - device.viewport.dx;
         const centerY = device.height / 2 - device.viewport.dy;
 
@@ -176,11 +181,9 @@ const zoomIn = (state) => {
 };
 
 const zoomOut = (state) => {
-    const { x, y } = device.mouse;
-    const coord = paletteCoord(x, y);
     let { zoomLevel } = state;
 
-    if (state.click && coord.x === 3 && coord.y === 0 && zoomLevel > 0) {
+    if (zoomLevel > 0) {
         const centerX = device.width / 2 - device.viewport.dx;
         const centerY = device.height / 2 - device.viewport.dy;
 
@@ -197,18 +200,69 @@ const zoomOut = (state) => {
 };
 
 const clear = (state) => {
+    device.viewport.dx = 0;
+    device.viewport.dy = 0;
+
+    return {
+        ...state,
+        pixels: new Map(),
+        zoomLevel: 0
+    };
+};
+
+const undo = (state) => {
+    const undoStack = [...state.undoStack];
+    const redoStack = [...state.redoStack];
+    let pixels = state.pixels;
+
+    if (undoStack.length > 0) {
+        redoStack.push(pixels);
+        pixels = undoStack.pop() ?? new Map();
+    }
+
+    return {
+        ...state,
+        undoStack,
+        redoStack,
+        pixels
+    };
+};
+
+const redo = (state) => {
+    const undoStack = [...state.undoStack];
+    const redoStack = [...state.redoStack];
+    let pixels = state.pixels;
+
+    if (redoStack.length > 0) {
+        undoStack.push(pixels);
+        pixels = redoStack.pop() ?? new Map();
+    }
+
+    return {
+        ...state,
+        undoStack,
+        redoStack,
+        pixels
+    };
+};
+
+const toolClickHandlers = [
+    undo,
+    redo,
+    zoomIn,
+    zoomOut,
+    () => {},
+    () => {},
+    clear,
+    () => {}
+];
+
+const toolClick = (state) => {
     const { x, y } = device.mouse;
     const coord = paletteCoord(x, y);
 
-    if (state.click && coord.x === 6 && coord.y === 0) {
-        device.viewport.dx = 0;
-        device.viewport.dy = 0;
-
-        return {
-            ...state,
-            pixels: new Map(),
-            zoomLevel: 0
-        };
+    if (state.click && coord.y === TOOLS) {
+        return toolClickHandlers[coord.x](state);
     }
 
     return state;
@@ -224,8 +278,11 @@ const drawIcon = (ctx, icon, pixelSize, color) => {
 };
 
 const isToolDisabled = (state, i) => {
-    if (i === 2) return state.zoomLevel === 5;
-    if (i === 3) return state.zoomLevel === 0;
+    if (i === UNDO) return state.undoStack.length === 0;
+    if (i === REDO) return state.redoStack.length === 0;
+    if (i === ZOOMIN) return state.zoomLevel === 5;
+    if (i === ZOOMOUT) return state.zoomLevel === 0;
+    if (i === CLEAR) return state.pixels.size === 0;
 
     return false;
 };
@@ -272,7 +329,7 @@ const detectClick = (state) => {
     };
 };
 
-const updaters = [detectClick, updatePixels, setColor, zoomIn, zoomOut, clear];
+const updaters = [detectClick, updatePixels, setColor, toolClick];
 const renderers = [background, grid, renderPixels, palette, stats];
 
 run(initialState, updaters, renderers);
