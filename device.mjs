@@ -24,8 +24,8 @@ window.addEventListener('resize', () => {
 const handlePointerEvent = (e) => {
     device.mouse.x = e.x;
     device.mouse.y = e.y;
-    device.mouse.buttons.left = (e.buttons & 1) !== 0;
-    device.mouse.buttons.right = (e.buttons & 2) !== 0;
+    device.mouse.buttons.left = (e.buttons & 1 !== 0) && !e.ctrlKey;
+    device.mouse.buttons.right = (e.buttons & 2 !== 0) || ((e.buttons & 1 !== 0) && e.ctrlKey) ;
     device.mouse.buttons.middle = (e.buttons & 4) !== 0;
 };
 

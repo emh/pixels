@@ -166,9 +166,8 @@ export const initialState = {
     pixels: new Map(),
     currentColor: colors[0],
     currentTools: [0, 0, 0, 0, 0, 0, 0, 0],
-    wasLeftButtonPressed: false,
-    click: false,
-    isDrawing: false,
+    wasMouseButtonPressed: false,
+    mouseButtonClick: false,
     zoomLevel: 0,
     undoStack: [],
     redoStack: []

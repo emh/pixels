@@ -27,6 +27,9 @@ export const run = (initialState, updaters, renderers) => {
         const ctx = canvas.getContext('2d');
 
         state = updaters.reduce((state, updater) => updater(state), state);
+
+        window.state = state;
+
         renderers.forEach((renderer) => renderer(ctx, state));
     };
     

@@ -24,6 +24,10 @@ const setQuadPixel = (node, localX, localY, depth, c) => {
         return node.ne;
     }
 
+    if (node.ne == null && node.nw == null && node.sw == null && node.se == null) {
+        return null;
+    }
+
     return node;
 }
   
@@ -32,10 +36,19 @@ export const setPixel = (pixels, x, y, z, c) => {
         const column = pixels.get(x) ?? new Map();
         const newColumn = new Map(column);
     
-        newColumn.set(y, c);
+        if (c) {
+            newColumn.set(y, c);
+        } else {
+            newColumn.delete(y);
+        }
     
         const newPixels = new Map(pixels);
-        newPixels.set(x, newColumn);
+
+        if (newColumn.size > 0) {
+            newPixels.set(x, newColumn);
+        } else {
+            newPixels.delete(x);
+        }
     
         return newPixels;
     }
@@ -53,16 +66,26 @@ export const setPixel = (pixels, x, y, z, c) => {
     const column = pixels.get(baseX) ?? new Map();
 
     const newColumn = new Map(column);
-    newColumn.set(baseY, basePixel);
+
+    if (basePixel !== null) {
+        newColumn.set(baseY, basePixel);
+    } else {
+        newColumn.delete(baseY);
+    }
 
     const newPixels = new Map(pixels);
-    newPixels.set(baseX, newColumn);
+
+    if (newColumn.size > 0) {
+        newPixels.set(baseX, newColumn);
+    } else {
+        newPixels.delete(baseX);
+    }
 
     return newPixels; 
 };
 
 const getQuadPixel = (node, localX, localY, depth) => {
-    if (typeof node !== 'object' || depth === 0) return node;
+    if (typeof node !== 'object' || node === null || depth === 0) return node;
 
     const factor = 2 ** (depth - 1);
     const qx = Math.floor(localX / factor);

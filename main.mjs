@@ -46,7 +46,7 @@ const stats = (ctx, state) => {
     ctx.font = '12px sans-serif';
     ctx.fillStyle = 'black';
     ctx.textAlign = 'right';
-    ctx.fillText(`${2**state.zoomLevel}x ${sx}, ${sy} ${state.fps}fps`, device.width - 10, 20);
+    ctx.fillText(`${2**state.zoomLevel}x | (${sx}, ${sy}) | ${state.fps}fps`, device.width - 10, 20);
 };
 
 const grid = (ctx, state) => {
@@ -70,7 +70,10 @@ const grid = (ctx, state) => {
 };
 
 const updatePixels = (state) => {
-    if (device.mouse.buttons.left && !insidePalette()) {
+    const drawing = device.mouse.buttons.left;
+    const erasing = device.mouse.buttons.right;
+
+    if ((drawing || erasing) && !insidePalette()) {
         const undoStack = [...state.undoStack];
 
         if (state.click) {
@@ -82,7 +85,7 @@ const updatePixels = (state) => {
 
         return {
             ...state,
-            pixels: setPixel(state.pixels, x, y, state.zoomLevel, state.currentColor),
+            pixels: setPixel(state.pixels, x, y, state.zoomLevel, drawing ? state.currentColor : null),
             undoStack
         };
     }
@@ -93,7 +96,7 @@ const updatePixels = (state) => {
 const renderQuadPixel = (ctx, pixel, x, y, size) => {
     let color = pixel.nw;
 
-    if (typeof color === 'object') {
+    if (typeof color === 'object' && color !== null) {
         renderQuadPixel(ctx, color, x, y, size / 2);
     } else if (color) {
         ctx.fillStyle = color;
@@ -102,7 +105,7 @@ const renderQuadPixel = (ctx, pixel, x, y, size) => {
 
     color = pixel.ne;
 
-    if (typeof color === 'object') {
+    if (typeof color === 'object' && color !== null) {
         renderQuadPixel(ctx, color, x + size / 2, y, size / 2);
     } else if (color) {
         ctx.fillStyle = color;
@@ -111,7 +114,7 @@ const renderQuadPixel = (ctx, pixel, x, y, size) => {
 
     color = pixel.sw;
 
-    if (typeof color === 'object') {
+    if (typeof color === 'object' && color !== null) {
         renderQuadPixel(ctx, color, x, y + size / 2, size / 2);
     } else if (color) {
         ctx.fillStyle = color;
@@ -120,7 +123,7 @@ const renderQuadPixel = (ctx, pixel, x, y, size) => {
 
     color = pixel.se;
 
-    if (typeof color === 'object') {
+    if (typeof color === 'object' && color !== null) {
         renderQuadPixel(ctx, color, x + size / 2, y + size / 2, size / 2);
     } else if (color) {
         ctx.fillStyle = color;
@@ -141,7 +144,7 @@ const renderPixels = (ctx, state) => {
         for (let y = sy; y < ey; y++) {
             const color = getPixel(state.pixels, x, y, state.zoomLevel);
             
-            if (typeof color === 'object') {
+            if (typeof color === 'object' && color !== null) {
                 renderQuadPixel(ctx, color, x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2);
             } else if (color) {
                 ctx.fillStyle = color;
@@ -320,12 +323,12 @@ const palette = (ctx, state) => {
 };
 
 const detectClick = (state) => {
-    const click = !state.wasLeftButtonPressed && device.mouse.buttons.left;
+    const click = !state.wasLeftButtonPressed && (device.mouse.buttons.left || device.mouse.buttons.right);
 
     return {
         ...state,
         click,
-        wasLeftButtonPressed: device.mouse.buttons.left
+        wasLeftButtonPressed: (device.mouse.buttons.left || device.mouse.buttons.right)
     };
 };
 
