@@ -254,17 +254,17 @@ const toolClickHandlers = [
     redo,
     zoomIn,
     zoomOut,
-    () => {},
-    () => {},
+    null,
+    null,
     clear,
-    () => {}
+    null
 ];
 
 const toolClick = (state) => {
     const { x, y } = device.mouse;
     const coord = paletteCoord(x, y);
 
-    if (state.click && coord.y === TOOLS) {
+    if (state.click && coord.y === TOOLS && toolClickHandlers[coord.x]) {
         return toolClickHandlers[coord.x](state);
     }
 
