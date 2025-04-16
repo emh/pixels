@@ -94,41 +94,26 @@ const updatePixels = (state) => {
 };
 
 const renderQuadPixel = (ctx, pixel, x, y, size) => {
-    let color = pixel.nw;
+    const getXY = (q) => {
+        switch (q) {
+            case 'nw': return { x, y };
+            case 'ne': return { x: x + size / 2, y };
+            case 'sw': return { x, y: y + size / 2 };
+            case 'se': return { x: x + size / 2, y: y + size / 2 };
+        }
+    };
 
-    if (typeof color === 'object' && color !== null) {
-        renderQuadPixel(ctx, color, x, y, size / 2);
-    } else if (color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, size / 2, size / 2);
-    }
+    ['nw', 'ne', 'sw', 'se'].forEach((q) => {
+        const color = pixel[q];
+        const { x: qx, y: qy } = getXY(q);
 
-    color = pixel.ne;
-
-    if (typeof color === 'object' && color !== null) {
-        renderQuadPixel(ctx, color, x + size / 2, y, size / 2);
-    } else if (color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x + size / 2, y, size / 2, size / 2);
-    }
-
-    color = pixel.sw;
-
-    if (typeof color === 'object' && color !== null) {
-        renderQuadPixel(ctx, color, x, y + size / 2, size / 2);
-    } else if (color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y + size / 2, size / 2, size / 2);
-    }
-
-    color = pixel.se;
-
-    if (typeof color === 'object' && color !== null) {
-        renderQuadPixel(ctx, color, x + size / 2, y + size / 2, size / 2);
-    } else if (color) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x + size / 2, y + size / 2, size / 2, size / 2);
-    }
+        if (typeof color === 'object' && color !== null) {
+            renderQuadPixel(ctx, color, qx, qy, size / 2);
+        } else if (color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(qx, qy, size / 2 + 0.5, size / 2 + 0.5);
+        }    
+    });
 };
 
 const renderPixels = (ctx, state) => {
@@ -139,16 +124,16 @@ const renderPixels = (ctx, state) => {
     const sy = Math.floor(-1 * device.viewport.dy / size);
     const ex = sx + cx;
     const ey = sy + cy;
-        
+
     for (let x = sx; x < ex; x++) {
         for (let y = sy; y < ey; y++) {
             const color = getPixel(state.pixels, x, y, state.zoomLevel);
             
             if (typeof color === 'object' && color !== null) {
-                renderQuadPixel(ctx, color, x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2);
+                renderQuadPixel(ctx, color, x * size + device.viewport.dx, y * size + device.viewport.dy, size);
             } else if (color) {
                 ctx.fillStyle = color;
-                ctx.fillRect(x * size + 1 + device.viewport.dx, y * size + 1 + device.viewport.dy, size - 2, size - 2);
+                ctx.fillRect(x * size + device.viewport.dx, y * size + device.viewport.dy, size + 0.5, size + 0.5);
             }
         }
     }

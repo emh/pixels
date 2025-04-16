@@ -32,8 +32,8 @@ const handlePointerEvent = (e) => {
 const handleWheelEvent = (e) => {
     e.preventDefault();
 
-    device.viewport.dx -= e.deltaX;
-    device.viewport.dy -= e.deltaY;
+    device.viewport.dx -= Math.round(e.deltaX);
+    device.viewport.dy -= Math.round(e.deltaY);
 };
 
 window.addEventListener('pointermove', handlePointerEvent);
